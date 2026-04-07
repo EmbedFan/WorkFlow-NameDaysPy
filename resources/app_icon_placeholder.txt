@@ -1,0 +1,10 @@
+# Icon placeholder for the application system tray.
+# This should be replaced with an actual PNG icon file.
+# Dimensions: 16x16, 32x32, or 64x64 pixels
+# Format: PNG with transparency recommended
+
+# Current placeholder - in a real project, replace this with:
+# - An actual .png image file
+# - Size: 32x32 or 64x64 pixels recommended
+# - Transparent background
+# - Clear icon representing the application purpose
