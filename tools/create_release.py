@@ -73,8 +73,8 @@ class ReleaseManager:
             # APP I18N MODULE (6)
             FileMapping("app/i18n/__init__.py", "app/i18n/__init__.py", "py", "i18n"),
             FileMapping("app/i18n/translator.py", "app/i18n/translator.py", "py", "i18n"),
-            FileMapping("app/i18n/app_en.ts", "app/i18n/app_en.ts", "ts", "i18n"),
-            FileMapping("app/i18n/app_hu.ts", "app/i18n/app_hu.ts", "ts", "i18n"),
+#            FileMapping("app/i18n/app_en.ts", "app/i18n/app_en.ts", "ts", "i18n"),
+#            FileMapping("app/i18n/app_hu.ts", "app/i18n/app_hu.ts", "ts", "i18n"),
             FileMapping("app/i18n/app_hu.qm", "app/i18n/app_hu.qm", "qm", "i18n"),
             FileMapping("app/i18n/app_en.json", "app/i18n/app_en.json", "json", "i18n"),
             FileMapping("app/i18n/app_hu.json", "app/i18n/app_hu.json", "json", "i18n"),
@@ -113,10 +113,10 @@ class ReleaseManager:
             FileMapping("resources/app.ico", "resources/app.ico", "ico", "resources"),
             FileMapping("resources/app_icon.png", "resources/app_icon.png", "png", "resources"),
             FileMapping("resources/tray_icon.png", "resources/tray_icon.png", "png", "resources"),
-            FileMapping("resources/styles/default.qss", "resources/styles/default.qss", "qss", "resources"),
+            FileMapping("resources/styles/default.qss", "resources/styles/default.qss", "qss", "resources")
             
-            # SPECIAL FILES
-            FileMapping("app/app.pro", "app/app.pro", "pro", "app"),
+#            # SPECIAL FILES
+#            FileMapping("app/app.pro", "app/app.pro", "pro", "app"),
         ]
         return mappings
     

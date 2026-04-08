@@ -5,7 +5,9 @@ Manages Windows registry entries for application auto-launch at startup.
 """
 
 import winreg
+from pathlib import Path
 from typing import Optional
+import re
 
 from app.utils import get_logger
 from app.exceptions import WindowsIntegrationException
@@ -31,24 +33,27 @@ class WindowsStartupManager:
         self.app_path = app_path
     
     def enable_auto_launch(self, app_path: str) -> bool:
-        """
-        Register application for auto-launch at startup [REQ-0002, REQ-0051].
-        
-        Adds Windows registry entry under HKEY_CURRENT_USER.
-        
-        Args:
-            app_path: Full path to application executable
-        
-        Returns:
-            True if successful, False otherwise
-        
-        Raises:
-            WindowsIntegrationException: If registry operation fails
-        """
+        """Register application for auto-launch at startup [REQ-0002, REQ-0051]."""
         try:
-            self.app_path = app_path
+            # Extract project root from main.py path in app_path
+            # app_path format: "C:\...\python.exe "C:\...\main.py""
+            match = re.search(r'"([^"]+main\.py)"', app_path)
+            if not match:
+                raise WindowsIntegrationException(
+                    "Invalid app_path format",
+                    "invalid_path"
+                )
             
-            # Open registry key
+            main_py_path = Path(match.group(1))
+            project_root = main_py_path.parent
+            batch_wrapper = project_root / "run_hidden.bat"
+            
+            if not batch_wrapper.exists():
+                raise WindowsIntegrationException(
+                    f"Batch wrapper not found at {batch_wrapper}. Create run_hidden.bat in project root.",
+                    "missing_wrapper"
+                )
+            
             key = winreg.OpenKey(
                 winreg.HKEY_CURRENT_USER,
                 STARTUP_REGISTRY_PATH,
@@ -56,31 +61,23 @@ class WindowsStartupManager:
                 winreg.KEY_WRITE
             )
             
-            # Set registry value
             winreg.SetValueEx(
                 key,
                 STARTUP_REGISTRY_KEY,
                 0,
                 winreg.REG_SZ,
-                app_path
+                str(batch_wrapper)
             )
             
             winreg.CloseKey(key)
-            logger.info(f"Auto-launch enabled for: {app_path}")
+            logger.info(f"Auto-launch enabled: {batch_wrapper}")
             return True
         
-        except WindowsError as e:
-            logger.error(f"Registry error enabling auto-launch: {e}")
-            raise WindowsIntegrationException(
-                f"Failed to enable auto-launch: {e}",
-                "registry_write"
-            ) from e
+        except WindowsIntegrationException:
+            raise
         except Exception as e:
-            logger.error(f"Error enabling auto-launch: {e}")
-            raise WindowsIntegrationException(
-                f"Failed to enable auto-launch: {e}",
-                "enable"
-            ) from e
+            logger.error(f"Failed to enable auto-launch: {e}")
+            raise WindowsIntegrationException(f"Failed to enable auto-launch: {e}") from e
     
     def disable_auto_launch(self) -> bool:
         """

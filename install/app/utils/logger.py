@@ -85,12 +85,30 @@ def setup_logging(
 
 def get_logger(name: str) -> logging.Logger:
     """
-    Get a logger instance by name.
+    Get a logger instance by name, ensuring it's properly configured.
+    
+    Falls back to the main NameDaysApp logger if the child logger
+    doesn't have handlers (ensuring logs always output even if
+    setup_logging wasn't called for this specific module).
     
     Args:
-        name: Logger name
+        name: Logger name (typically __name__)
     
     Returns:
-        Logger instance
+        Logger instance with handlers configured
     """
-    return logging.getLogger(name)
+    logger = logging.getLogger(name)
+    
+    # If this logger has no handlers, use the main app logger instead
+    if not logger.handlers:
+        main_logger = logging.getLogger("NameDaysApp")
+        # If main logger also has no handlers, we have a serious config problem
+        if not main_logger.handlers:
+            # Create a basic fallback handler
+            handler = logging.StreamHandler()
+            handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+            main_logger.addHandler(handler)
+            main_logger.setLevel(logging.INFO)
+        return main_logger
+    
+    return logger

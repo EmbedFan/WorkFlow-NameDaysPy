@@ -7,7 +7,7 @@ Includes default settings, file paths, validation rules, and system constraints.
 from pathlib import Path
 
 # Application Metadata
-APP_NAME = "app"
+APP_NAME = "NameDaysPy"
 APP_VERSION = "1.0.0"
 APP_AUTHOR = "Development Team"
 

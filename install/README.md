@@ -100,6 +100,41 @@ To enable email notifications:
 3. Enter credentials in the Settings dialog
 4. Test the connection
 
+### Windows Startup Integration
+
+To enable automatic application launch at Windows startup [REQ-0002, REQ-0051]:
+
+**Using Settings Dialog:**
+1. Open Settings from the system tray menu
+2. Check the "Auto-launch at startup" option
+3. The application will be registered in Windows registry
+4. Next system restart will launch the app automatically
+
+**Programmatic Control** (via `app/services/windows_startup.py`):
+
+The `WindowsStartupManager` class provides methods to manage Windows registry entries for auto-launch:
+
+```python
+from app.services.windows_startup import WindowsStartupManager
+
+#Initialize manager
+manager = WindowsStartupManager()
+
+# Enable auto-launch
+manager.enable_auto_launch(r"C:\path\to\python main.py")
+
+# Check if auto-launch is enabled
+if manager.is_auto_launch_enabled():
+   print("Application will auto-launch at startup")
+
+# Disable auto-launch
+manager.disable_auto_launch()
+
+# Check if running at system startup
+if manager.is_running_at_startup():
+   print("Application was launched at system startup")
+```
+
 ## Project Structure
 
 ```

@@ -60,12 +60,14 @@ class MonitoringEngine(Thread):
         Periodically checks for namedays at configured intervals.
         Exits gracefully when stop_monitoring() is called.
         """
-        logger.info(f"Monitoring engine started (interval: {self.check_interval} seconds)")
-        self._running = True
-        
         try:
+            logger.info(f"Monitoring engine started (interval: {self.check_interval} seconds)")
+            self._running = True
+            
             while not self._stop_event.is_set():
                 try:
+                    logger.info("Running monitoring cycle [REQ-0022]")
+                    
                     # Check for namedays
                     namedays = self.check_namedays()
                     
@@ -73,16 +75,19 @@ class MonitoringEngine(Thread):
                     for nameday in namedays:
                         self.notification_queue.add(nameday)
                     
-                    logger.debug(f"Monitoring cycle complete: {len(namedays)} notifications queued [REQ-0022]")
+                    logger.info(f"Monitoring cycle complete: {len(namedays)} notifications queued [REQ-0022]")
                     
                     # Sleep for configured interval
-                    logger.info(f"Monitoring sleeping for {self.check_interval} seconds [REQ-0022]")
+                    logger.info(f"Monitoring sleeping for {self.check_interval} seconds until next cycle [REQ-0022]")
                     self._stop_event.wait(self.check_interval)
                 
                 except Exception as e:
-                    logger.error(f"Error in monitoring loop: {e}")
+                    logger.error(f"Error in monitoring loop: {e}", exc_info=True)
                     # Continue running despite errors
                     self._stop_event.wait(60)  # Wait 1 minute before retry
+    
+        except Exception as e:
+            logger.error(f"CRITICAL: Monitoring engine failed during startup: {e}", exc_info=True)
         
         finally:
             self._running = False
