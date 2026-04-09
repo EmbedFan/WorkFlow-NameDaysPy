@@ -1,8 +1,21 @@
 {
   "check_interval": 10,
-  "auto_launch": true,
+  "auto_launch": false,
   "language": "hu",
   "gmail_account": "",
   "gmail_password": "",
-  "notifications_enabled": true
+  "notifications_enabled": true,
+  "database_editor": {
+    "window": {
+      "width": 1039,
+      "height": 600
+    },
+    "column_widths": {
+      "Name": 60,
+      "Other Nameday": 125,
+      "Recipient": 94,
+      "Email": 128,
+      "Comment": 125
+    }
+  }
 }

@@ -2,10 +2,12 @@ from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox, QCheckBox, QPushButton, QComboBox, QMessageBox
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
+from pathlib import Path
 import sys
 
 from app.utils import get_logger
-from app.constants import SUPPORTED_LANGUAGES
+from app.constants import SUPPORTED_LANGUAGES, RESOURCES_DIR
 from app.services.windows_startup import WindowsStartupManager
 from app.exceptions import WindowsIntegrationException
 
@@ -21,6 +23,12 @@ class SettingsDialog(QDialog):
         self.settings = settings_manager.get_settings()
         
         self.setWindowTitle(self.tr("Settings"))
+        
+        # Load and set settings icon [REQ-0045]
+        icon_path = RESOURCES_DIR / "settings.png"
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
+        
         self.setGeometry(100, 100, 400, 300)
         self._setup_ui()
     
@@ -98,11 +106,12 @@ class SettingsDialog(QDialog):
         # Save all settings
         logger.info("Settings saving...")
         self.settings_manager.set_setting("check_interval", self.interval_spin.value())
-        self.settings_manager.set_setting("auto_launch", new_auto_launch)
+        # Note: auto_launch config is saved after successful registry operation (see below)
         self.settings_manager.set_setting("notifications_enabled", self.notifications_check.isChecked())
         self.settings_manager.set_setting("language", new_language)
         
         # Handle auto-launch registry update [REQ-0002, REQ-0051]
+        # IMPORTANT: Only save auto_launch setting if registry operation succeeds
         if auto_launch_changed:
             try:
                 manager = WindowsStartupManager()
@@ -112,6 +121,8 @@ class SettingsDialog(QDialog):
                     app_path = f'{sys.executable} "{sys.argv[0]}"'
                     manager.enable_auto_launch(app_path)
                     logger.info(f"Auto-launch enabled: {app_path} [REQ-0002]")
+                    # Save config flag only after successful registry operation
+                    self.settings_manager.set_setting("auto_launch", True)
                     QMessageBox.information(
                         self,
                         self.tr("Auto-launch Enabled"),
@@ -120,6 +131,8 @@ class SettingsDialog(QDialog):
                 else:
                     manager.disable_auto_launch()
                     logger.info("Auto-launch disabled [REQ-0002]")
+                    # Save config flag only after successful registry operation
+                    self.settings_manager.set_setting("auto_launch", False)
                     QMessageBox.information(
                         self,
                         self.tr("Auto-launch Disabled"),
@@ -127,12 +140,13 @@ class SettingsDialog(QDialog):
                     )
             except WindowsIntegrationException as e:
                 logger.error(f"Failed to update auto-launch registry: {e}")
+                # Do NOT save config flag - revert to previous value
+                self.settings_manager.set_setting("auto_launch", old_auto_launch)
                 QMessageBox.warning(
                     self,
                     self.tr("Failed to Update Startup"),
                     self.tr(f"Could not update Windows startup registry: {str(e)}")
                 )
-                # Still save config even if registry update fails
         
         # If language changed, notify user and switch translator [REQ-0045]
         if language_changed:

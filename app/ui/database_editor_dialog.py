@@ -3,8 +3,11 @@ from PyQt5.QtWidgets import (
     QPushButton, QHeaderView, QWidget, QMessageBox
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
+from pathlib import Path
 
 from app.utils import get_logger
+from app.constants import RESOURCES_DIR
 from app.ui.add_edit_contact_dialog import AddEditContactDialog
 from app.exceptions import DatabaseException
 
@@ -24,6 +27,12 @@ class DatabaseEditorDialog(QDialog):
         self.dialog_config = self._load_dialog_config()
         
         self.setWindowTitle(self.tr("Contact Database"))
+        
+        # Load and set database icon [REQ-0011]
+        icon_path = RESOURCES_DIR / "database.png"
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
+        
         width, height = self.dialog_config["window_size"]
         self.setGeometry(100, 100, width, height)
         self._setup_ui()

@@ -5,7 +5,9 @@ Manages Windows registry entries for application auto-launch at startup.
 """
 
 import winreg
+from pathlib import Path
 from typing import Optional
+import re
 
 from app.utils import get_logger
 from app.exceptions import WindowsIntegrationException
@@ -34,21 +36,59 @@ class WindowsStartupManager:
         """
         Register application for auto-launch at startup [REQ-0002, REQ-0051].
         
-        Adds Windows registry entry under HKEY_CURRENT_USER.
-        
-        Args:
-            app_path: Full path to application executable
-        
-        Returns:
-            True if successful, False otherwise
-        
-        Raises:
-            WindowsIntegrationException: If registry operation fails
+        Registers run_hidden.vbs to start at Windows system startup.
+        The VBScript runs hidden and launches the application in the background.
         """
+        startup_command = ""
         try:
-            self.app_path = app_path
+            logger.debug(f"enable_auto_launch called with app_path: {app_path}")
             
-            # Open registry key
+            # Extract project root from main.py path in app_path or sys.argv
+            # app_path format: "C:\...\python.exe "C:\...\main.py"" or similar
+            # Try multiple patterns to handle different launch scenarios
+            main_py_path = None
+            
+            # Pattern 1: Look for main.py in quotes (IDE/standard launch)
+            match = re.search(r'"([^"]+main\.py)"', app_path)
+            if match:
+                main_py_path = Path(match.group(1))
+                logger.debug(f"Found main.py from pattern 1: {main_py_path}")
+            else:
+                # Pattern 2: Look for any .py file in quotes (VBScript or alternative launch)
+                match = re.search(r'"([^"]+\.py)"', app_path)
+                if match:
+                    main_py_path = Path(match.group(1))
+                    logger.debug(f"Found Python file from pattern 2: {main_py_path}")
+                else:
+                    # Pattern 3: Last resort - try to use current working directory + main.py
+                    logger.debug(f"Could not extract Python file path from app_path, trying fallback")
+                    fallback_path = Path.cwd() / "main.py"
+                    if fallback_path.exists():
+                        main_py_path = fallback_path
+                        logger.debug(f"Using fallback path: {main_py_path}")
+            
+            if not main_py_path:
+                logger.error(f"Could not extract main.py path from: {app_path}")
+                raise WindowsIntegrationException(
+                    f"Invalid app_path format: {app_path}. Expected path to main.py.",
+                    "invalid_path"
+                )
+            
+            project_root = main_py_path.parent
+            vbs_launcher = project_root / "run_hidden.vbs"
+            
+            if not vbs_launcher.exists():
+                raise WindowsIntegrationException(
+                    f"VBScript launcher not found at {vbs_launcher}. Create run_hidden.vbs in project root.",
+                    "missing_wrapper"
+                )
+            
+            # Register VBScript for startup using Windows Script Host
+            # Format: cscript.exe "C:\full\path\to\run_hidden.vbs"
+            # IMPORTANT: Must use absolute path so Windows can find it at startup
+            startup_command = f'cscript.exe "{vbs_launcher.resolve()}"'
+            logger.info(f"Prepared auto-launch command: '{startup_command}'")
+            
             key = winreg.OpenKey(
                 winreg.HKEY_CURRENT_USER,
                 STARTUP_REGISTRY_PATH,
@@ -56,31 +96,23 @@ class WindowsStartupManager:
                 winreg.KEY_WRITE
             )
             
-            # Set registry value
             winreg.SetValueEx(
                 key,
                 STARTUP_REGISTRY_KEY,
                 0,
                 winreg.REG_SZ,
-                app_path
+                startup_command
             )
             
             winreg.CloseKey(key)
-            logger.info(f"Auto-launch enabled for: {app_path}")
+            logger.info(f"Auto-launch enabled for startup: {startup_command}")
             return True
         
-        except WindowsError as e:
-            logger.error(f"Registry error enabling auto-launch: {e}")
-            raise WindowsIntegrationException(
-                f"Failed to enable auto-launch: {e}",
-                "registry_write"
-            ) from e
+        except WindowsIntegrationException:
+            raise
         except Exception as e:
-            logger.error(f"Error enabling auto-launch: {e}")
-            raise WindowsIntegrationException(
-                f"Failed to enable auto-launch: {e}",
-                "enable"
-            ) from e
+            logger.error(f"Failed to enable auto-launch: {e} | app_path: '{app_path}' | startup_command: '{startup_command}'")
+            raise WindowsIntegrationException(f"Failed to enable auto-launch: {e}") from e
     
     def disable_auto_launch(self) -> bool:
         """

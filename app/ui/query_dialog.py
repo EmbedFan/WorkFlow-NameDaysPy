@@ -1,8 +1,11 @@
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem
 )
+from PyQt5.QtGui import QIcon
+from pathlib import Path
 
 from app.utils import get_logger
+from app.constants import RESOURCES_DIR
 
 logger = get_logger(__name__)
 
@@ -15,6 +18,12 @@ class QueryDialog(QDialog):
         self.contact_db = contact_db
         
         self.setWindowTitle(self.tr("Search Contacts"))
+        
+        # Load and set query icon [REQ-0040]
+        icon_path = RESOURCES_DIR / "query.png"
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
+        
         self.setGeometry(100, 100, 400, 400)
         self._setup_ui()
     

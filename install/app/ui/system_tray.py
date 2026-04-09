@@ -78,7 +78,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.menu.addSeparator()
         
         # Reload Namedays Database action [REQ-0066]
-        reload_action = self.menu.addAction(self.tr("Reload Namedays Database"))
+        reload_action = self.menu.addAction(self._load_icon("reload.png"), self.tr("Reload Namedays Database"))
         reload_action.triggered.connect(self._on_reload_namedays)
         
         # Separator

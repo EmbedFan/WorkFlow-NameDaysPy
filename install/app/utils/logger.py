@@ -10,7 +10,7 @@ import atexit
 from pathlib import Path
 from typing import Optional
 
-from app.constants import LOG_LEVEL, LOG_FORMAT, LOG_MAX_BYTES, LOG_BACKUP_COUNT, LOGS_DIR
+from app.constants import LOG_LEVEL, LOG_FORMAT, LOG_MAX_BYTES, LOG_BACKUP_COUNT, LOGS_DIR, APP_NAME
 
 
 def setup_logging(
@@ -71,9 +71,10 @@ def setup_logging(
     file_handler.setLevel(getattr(logging, log_level.upper()))
     logger.addHandler(file_handler)
     
-    # Console handler
+    # Console handler - explicitly set level to ensure all errors are captured
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
+    console_handler.setLevel(getattr(logging, log_level.upper()))
     logger.addHandler(console_handler)
     
     # Ensure logs are flushed on exit
@@ -87,7 +88,7 @@ def get_logger(name: str) -> logging.Logger:
     """
     Get a logger instance by name, ensuring it's properly configured.
     
-    Falls back to the main NameDaysApp logger if the child logger
+    Falls back to the main application logger if the child logger
     doesn't have handlers (ensuring logs always output even if
     setup_logging wasn't called for this specific module).
     
@@ -101,7 +102,7 @@ def get_logger(name: str) -> logging.Logger:
     
     # If this logger has no handlers, use the main app logger instead
     if not logger.handlers:
-        main_logger = logging.getLogger("NameDaysApp")
+        main_logger = logging.getLogger(APP_NAME)
         # If main logger also has no handlers, we have a serious config problem
         if not main_logger.handlers:
             # Create a basic fallback handler

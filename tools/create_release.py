@@ -33,7 +33,7 @@ class FileMapping:
     """File association mapping."""
     install_path: str  # Path in install/
     source_path: str   # Path in source (root)
-    file_type: str     # 'py', 'csv', 'ts', 'qm', 'qss', 'png', 'ico', 'json', 'md'
+    file_type: str     # 'py', 'csv', 'ts', 'qm', 'qss', 'png', 'ico', 'json', 'md', 'bat', 'vbs'.
     module: str        # 'root', 'app', 'resources', 'i18n', etc.
 
 
@@ -56,6 +56,8 @@ class ReleaseManager:
             FileMapping("setup.py", "setup.py", "py", "root"),
             FileMapping("README.md", "README.md", "md", "root"),
             FileMapping("requirements.txt", "requirements.txt", "txt", "root"),
+            FileMapping("run_hidden.vbs", "run_hidden.vbs", "vbs", "root"),
+            FileMapping("run_hidden.bat", "run_hidden.bat", "bat", "root"),
             
             # APP CORE (5)
             FileMapping("app/__init__.py", "app/__init__.py", "py", "app"),
@@ -113,6 +115,12 @@ class ReleaseManager:
             FileMapping("resources/app.ico", "resources/app.ico", "ico", "resources"),
             FileMapping("resources/app_icon.png", "resources/app_icon.png", "png", "resources"),
             FileMapping("resources/tray_icon.png", "resources/tray_icon.png", "png", "resources"),
+            FileMapping("resources/settings.png", "resources/settings.png", "png", "resources"),
+            FileMapping("resources/today.png", "resources/today.png", "png", "resources"),
+            FileMapping("resources/reload.png", "resources/reload.png", "png", "resources"),
+            FileMapping("resources/query.png", "resources/query.png", "png", "resources"),
+            FileMapping("resources/exit.png", "resources/exit.png", "png", "resources"),
+            FileMapping("resources/database.png", "resources/database.png", "png", "resources"),
             FileMapping("resources/styles/default.qss", "resources/styles/default.qss", "qss", "resources")
             
 #            # SPECIAL FILES

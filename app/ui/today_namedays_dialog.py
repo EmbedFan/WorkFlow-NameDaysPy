@@ -1,10 +1,12 @@
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPushButton
 )
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
+from pathlib import Path
 from datetime import datetime
 
 from app.utils import get_logger
+from app.constants import RESOURCES_DIR
 
 logger = get_logger(__name__)
 
@@ -18,6 +20,12 @@ class TodayNamedaysDialog(QDialog):
         self.nameday_ref = nameday_ref
         
         self.setWindowTitle(self.tr("Today's Namedays"))
+        
+        # Load and set today's namedays icon [REQ-0012]
+        icon_path = RESOURCES_DIR / "today.png"
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
+        
         self.setGeometry(100, 100, 500, 400)
         self._setup_ui()
     

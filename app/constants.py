@@ -80,7 +80,7 @@ NOTIFICATION_MODAL_TIMEOUT_SECONDS = 0  # No auto-close
 MAX_MEMORY_MB = 100  # Target <100MB
 
 # Logging Configuration
-LOG_LEVEL = "INFO"
+LOG_LEVEL = "DEBUG"
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 LOG_MAX_BYTES = 10485760  # 10MB
 LOG_BACKUP_COUNT = 5
